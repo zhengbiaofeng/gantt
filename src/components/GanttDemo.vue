@@ -58,7 +58,7 @@
              }"
              @click="handleTaskClick(row, index)"
            >
-             <span v-if="row.tags && row.tags.includes('关键')" class="critical-icon" title="关键节点">★</span>
+             <svg v-if="row.tags && row.tags.includes('关键')" class="critical-icon" title="关键节点" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="14" height="14"><path d="M512 74l138.6 280.8L960 399.8 736 618l52.9 308L512 820.2 235.1 926l52.9-308L64 399.8l309.4-45L512 74z" fill="#f56c6c" /></svg>
              {{ row.label }}
            </div>
         </div>
@@ -1051,6 +1051,12 @@ watch(dependencyRows, () => {
 
 .sidebar-item:hover {
   background-color: #f5f7fa;
+}
+
+.critical-icon {
+  margin-right: 4px;
+  flex-shrink: 0;
+  vertical-align: middle;
 }
 
 .sidebar-item.is-phase {
