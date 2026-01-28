@@ -201,213 +201,24 @@
     </div>
 
     <!-- 右侧详情面板 -->
-    <div class="right-panel" v-show="!isRightPanelCollapsed">
-      <div class="panel-header">
-        <h3>{{ currentView === 'dependency' ? (selectedTask ? '任务详情' : '依赖关系详情') : '资源冲突详情' }}</h3>
-        <button class="panel-toggle-btn" @click="isRightPanelCollapsed = true" title="收起面板">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
-      </div>
-      <div class="panel-content">
-        <div v-if="currentView === 'dependency'">
-          <div v-if="selectedTask" class="detail-card">
-            <div class="detail-row">
-              <span class="label">任务名称：</span>
-              <span class="value">{{ selectedTask.name || selectedTask.label }}</span>
-            </div>
-            <div class="detail-row" v-if="selectedTask.id">
-              <span class="label">任务ID：</span>
-              <span class="value">{{ selectedTask.id }}</span>
-            </div>
-            <div class="detail-row" v-if="selectedTask.start">
-              <span class="label">开始时间：</span>
-              <span class="value">{{ selectedTask.start }}</span>
-            </div>
-            <div class="detail-row" v-if="selectedTask.end">
-              <span class="label">结束时间：</span>
-              <span class="value">{{ selectedTask.end }}</span>
-            </div>
-            <div class="detail-row" v-if="selectedTask.unit">
-              <span class="label">所属单位：</span>
-              <span class="value">{{ selectedTask.unit }}</span>
-            </div>
-            <div class="detail-row" v-if="selectedTask.role">
-              <span class="label">角色：</span>
-              <span class="value">{{ selectedTask.role }}</span>
-            </div>
-            <div class="detail-row" v-if="selectedTask.person">
-              <span class="label">人员：</span>
-              <span class="value">{{ selectedTask.person }}</span>
-            </div>
-
-            <div class="detail-divider"></div>
-
-            <div class="detail-row" v-if="selectedTask.tags && selectedTask.tags.includes('关键')">
-              <span class="label">节点类型：</span>
-              <span class="value tag critical-tag">★ 关键节点</span>
-            </div>
-
-            <div class="detail-row" v-if="selectedTaskPredecessors.length > 0">
-              <span class="label">前置任务：</span>
-              <div class="value-list">
-                <div v-for="(name, idx) in selectedTaskPredecessors" :key="idx" class="list-item">
-                  • {{ name }}
-                </div>
-              </div>
-            </div>
-            <div class="detail-row" v-else>
-              <span class="label">前置任务：</span>
-              <span class="value text-gray">无</span>
-            </div>
-
-            <div class="detail-row" v-if="selectedTaskSuccessors.length > 0">
-              <span class="label">后置任务：</span>
-              <div class="value-list">
-                <div v-for="(name, idx) in selectedTaskSuccessors" :key="idx" class="list-item">
-                  • {{ name }}
-                </div>
-              </div>
-            </div>
-            <div class="detail-row" v-else>
-              <span class="label">后置任务：</span>
-              <span class="value text-gray">无</span>
-            </div>
-          </div>
-          <div v-else-if="selectedGroupTasks.length > 0" class="detail-card">
-            <div class="detail-row">
-              <span class="label">分组名称：</span>
-              <span class="value">{{ selectedGroup }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">包含任务数：</span>
-              <span class="value">{{ selectedGroupTasks.length }}</span>
-            </div>
-            <div class="detail-divider"></div>
-            <div class="group-task-list">
-              <div v-for="task in selectedGroupTasks" :key="task.id" class="group-task-item">
-                <div class="task-name">{{ task.name }}</div>
-                <div class="task-meta">
-                  <span>{{ task.start.split(' ')[1] }} - {{ task.end.split(' ')[1] }}</span>
-                  <span v-if="task.role" class="tag">{{ task.role }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-else-if="selectedLine" class="detail-card">
-            <div class="detail-row">
-              <span class="label">前置任务：</span>
-              <span class="value">{{ selectedLine.fromTask?.name || selectedLine.relation.from }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">后置任务：</span>
-              <span class="value">{{ selectedLine.toTask?.name || selectedLine.relation.to }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">依赖类型：</span>
-              <span class="value">结束-开始 (FS)</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">状态：</span>
-              <span class="value tag">正常</span>
-            </div>
-          </div>
-          <div v-else class="empty-state">
-            请点击左侧任务名称或右侧连线查看详情
-          </div>
-        </div>
-        <div v-if="currentView === 'conflict'">
-          <div v-if="visibleConflictDetails.length > 0" class="conflict-cards">
-            <div v-for="item in visibleConflictDetails" :key="item.id" class="conflict-card-new">
-              <div class="card-header-person">
-                <span class="person-name">{{ item.personName }}</span>
-                <span class="header-badge" :class="'level-' + (item.level || 'medium')">{{ getRiskLevelText(item.level)
-                  }}</span>
-              </div>
-              <div class="related-tasks-section conflict-reason-row">
-                <div class="section-title">冲突原因：</div>
-                <div class="card-time-row">
-                  <span class="time-tag">时间冲突 {{ item.time }}</span>
-                </div>
-              </div>
-
-              <div class="related-tasks-section">
-                <div class="section-title">冲突任务：</div>
-
-                <div class="task-detail-card is-existing">
-                  <div class="task-card-header">
-                    <span class="task-name" @click="openTaskDetail(item, 'task1')">{{ item.task1 }}</span>
-                  </div>
-                  <div class="task-card-meta">
-                    <span class="meta-item">首长重点关注：{{ item.task1IsLeaderFocus ? '是' : '否' }}</span>
-                    <span class="meta-item">优先级：{{ item.task1Priority || '高' }}</span>
-                    <span class="meta-item">关键节点：{{ item.task1IsCritical ? '是' : '否' }}</span>
-                  </div>
-                </div>
-
-                <div class="task-detail-card is-new">
-                  <div class="task-card-header">
-                    <span class="task-name" @click="openTaskDetail(item, 'task2')">{{ item.task2 }}</span>
-                  </div>
-                  <div class="task-card-meta">
-                    <span class="meta-item">首长重点关注：{{ item.task2IsLeaderFocus ? '是' : '否' }}</span>
-                    <span class="meta-item">优先级：{{ item.task2Priority || '中' }}</span>
-                    <span class="meta-item">关键节点：{{ item.task2IsCritical ? '是' : '否' }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-else class="empty-state">
-            暂无资源冲突风险
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 展开按钮悬浮条 -->
-    <div class="expand-panel-trigger" v-if="isRightPanelCollapsed" @click="isRightPanelCollapsed = false"
-      title="展开详情面板">
-      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"
-        stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-    </div>
+    <GanttRightPanel
+      v-model:collapsed="isRightPanelCollapsed"
+      :current-view="currentView"
+      :selected-task="selectedTask"
+      :selected-task-predecessors="selectedTaskPredecessors"
+      :selected-task-successors="selectedTaskSuccessors"
+      :selected-group="selectedGroup"
+      :selected-group-tasks="selectedGroupTasks"
+      :selected-line="selectedLine"
+      :visible-conflict-details="visibleConflictDetails"
+      @open-task-detail="({ item, taskKey }) => openTaskDetail(item, taskKey)"
+    />
 
     <!-- 任务详情弹窗 -->
-    <Teleport to="body">
-      <div class="modal-overlay" v-if="showTaskDetailModal" @click.self="showTaskDetailModal = false">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>任务详情</h3>
-            <button class="close-btn" @click="showTaskDetailModal = false">&times;</button>
-          </div>
-          <div class="modal-body">
-            <div class="detail-item">
-              <span class="label">任务名称：</span>
-              <span class="value">{{ currentDetailTask.name }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">优先级：</span>
-              <span class="value">{{ currentDetailTask.priority || '中' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">关键节点：</span>
-              <span class="value">{{ currentDetailTask.isCritical ? '是' : '否' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">首长重点关注：</span>
-              <span class="value">{{ currentDetailTask.isLeaderFocus ? '是' : '否' }}</span>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="primary-btn" @click="showTaskDetailModal = false">关闭</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <TaskDetailModal 
+      v-model="showTaskDetailModal" 
+      :task="currentDetailTask" 
+    />
 
   </div>
 </template>
@@ -415,6 +226,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue"
 import { fetchGanttData, fetchConflictData } from '../api/mockData'
+import TaskDetailModal from './TaskDetailModal.vue'
+import GanttRightPanel from './GanttRightPanel.vue'
 
 const props = defineProps({
   width: {
@@ -1149,44 +962,7 @@ watch(dependencyRows, () => {
   /* 右侧分割线 */
 }
 
-.right-panel {
-  width: 480px;
-  background: #fff;
-  border-left: 1px solid #f3f4f6;
-  display: flex;
-  flex-direction: column;
-  z-index: 100;
-  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.05);
-}
 
-.panel-header {
-  height: 56px;
-  border-bottom: 1px solid #f3f4f6;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  background: #fff;
-}
-
-.panel-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827; /* Gray 900 */
-}
-
-.panel-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.detail-card {
-  background: #f9fafc;
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-  padding: 15px;
-}
 
 .sidebar-item {
   height: 40px;
@@ -1243,296 +1019,8 @@ watch(dependencyRows, () => {
   background-color: #ecf5ff !important;
 }
 
-.detail-divider {
-  height: 1px;
-  background-color: #ebeef5;
-  margin: 15px 0;
-}
-
-.value-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.list-item {
-  font-size: 13px;
-  color: #303133;
-}
-
-.text-gray {
-  color: #909399;
-}
-
-.tag.critical-tag {
-  background-color: #fdf6ec;
-  color: #e6a23c;
-  border: 1px solid #faecd8;
-}
-
-.detail-row {
-  display: flex;
-  margin-bottom: 12px;
-  line-height: 1.5;
-}
-
-.detail-row:last-child {
-  margin-bottom: 0;
-}
-
-.detail-row .label {
-  width: 80px;
-  color: #909399;
-  font-size: 13px;
-  flex-shrink: 0;
-}
-
-.detail-row .value {
-  color: #303133;
-  font-size: 13px;
-  word-break: break-all;
-}
-
-.value.tag {
-  display: inline-block;
-  background: #f0f9eb;
-  color: #67c23a;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.empty-state {
-  color: #909399;
-  text-align: center;
-  padding: 40px 0;
-  font-size: 14px;
-}
-
-.conflict-cards {
-  padding: 10px;
-}
-
-.conflict-card-new {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.conflict-card-new:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-}
-
-.card-header-person {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-  border-bottom: 1px solid #f3f4f6;
-  padding-bottom: 10px;
-}
-
-.person-name {
-  font-size: 16px;
-  font-weight: bold;
-  color: #1f2937;
-}
-
-.header-badge {
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-weight: 500;
-  border: 1px solid transparent;
-}
-
-.header-badge.level-high {
-  border-color: #fecaca;
-  color: #ef4444;
-  background-color: #fef2f2;
-}
-
-.header-badge.level-medium {
-  border-color: #fed7aa;
-  color: #f97316;
-  background-color: #fff7ed;
-}
-
-.header-badge.level-low {
-  border-color: #e5e7eb;
-  color: #6b7280;
-  background-color: #f9fafb;
-}
-
-.card-desc {
-  font-size: 13px;
-  color: #4b5563;
-  line-height: 1.5;
-  margin-bottom: 10px;
-}
-
-.card-time-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-  font-size: 13px;
-}
-
-.time-tag {
-  background-color: #fef2f2;
-  color: #ef4444;
-  border: 1px solid #fecaca;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.related-tasks-section {
-  margin-top: 15px;
-}
-
-.section-title {
-  text-align: left;
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 10px;
-}
-
-.conflict-reason-row {
-  display: flex;
-  align-items: center;
-}
-
-.conflict-reason-row .section-title {
-  margin-bottom: 0;
-  margin-right: 10px;
-}
-
-.conflict-reason-row .card-time-row {
-  margin-bottom: 0;
-}
-
-.task-detail-card {
-  background-color: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s;
-}
-
-/* 现有任务样式 - 优化蓝色 */
-.task-detail-card.is-existing {
-  background-color: #f0f9ff; /* Sky 50 */
-  border-color: #bae6fd; /* Sky 200 */
-  border-left: 4px solid #0ea5e9; /* Sky 500 */
-}
-
-.task-detail-card.is-existing .task-name {
-  color: #0369a1; /* Sky 700 */
-}
-
-.task-detail-card.is-existing .task-type-badge {
-  background-color: #0ea5e9;
-  color: white;
-}
-
-/* 方案新增样式 - 优化青色 */
-.task-detail-card.is-new {
-  background-color: #f0fdfa; /* Teal 50 */
-  border-color: #99f6e4; /* Teal 200 */
-  border-left: 4px solid #14b8a6; /* Teal 500 */
-}
-
-.task-detail-card.is-new .task-name {
-  color: #0f766e; /* Teal 700 */
-}
-
-.task-detail-card.is-new .task-type-badge {
-  background-color: #14b8a6;
-  color: white;
-}
-
-.task-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.task-type-badge {
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 2px;
-  margin-right: 8px;
-  font-weight: normal;
-  white-space: nowrap;
-}
-
-.task-name {
-  text-align: left;
-  font-weight: bold;
-  color: #333;
-  font-size: 14px;
-  flex: 1;
-  margin-right: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
-
-.task-name:hover {
-  text-decoration: underline;
-}
-
-.task-card-meta {
-  display: flex;
-  gap: 20px;
-  font-size: 12px;
-  color: #606266;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-}
 
 
-.conflict-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.conflict-item {
-  display: flex;
-  gap: 10px;
-  padding: 10px;
-  background: #fef0f0;
-  border: 1px solid #fde2e2;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #f56c6c;
-  align-items: flex-start;
-}
-
-.conflict-icon {
-  font-size: 16px;
-}
-
-.conflict-text {
-  flex: 1;
-  line-height: 1.4;
-}
 
 .main-controls {
   display: flex;
@@ -1646,42 +1134,7 @@ select:focus {
   /* 使用灰色表示低风险，或者用淡黄 */
 }
 
-/* 冲突徽章样式 */
-.conflict-level-badge {
-  display: flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 2px 6px;
-  border-radius: 10px;
-  margin-left: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
 
-.level-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 4px;
-}
-
-.level-high {
-  background-color: #f56c6c;
-}
-
-.level-medium {
-  background-color: #e6a23c;
-}
-
-.level-low {
-  background-color: #909399;
-}
-
-.level-text {
-  font-size: 12px;
-  color: #303133;
-  font-weight: bold;
-}
 
 /* --- 新的左右分栏布局样式 --- */
 .dependency-view-container {
@@ -2005,10 +1458,12 @@ select:focus {
 :deep(.g-gantt-bar:hover .gantt-bar-content.is-overflowing) {
   position: absolute;
   /* 脱离文档流 */
-  top: 0;
+  top: 50%;
+  transform: translateY(-50%) scale(1.02);
+  /* 垂直居中并轻微放大，产生悬浮感 */
   left: 0;
-  width: fit-content !important;
-  /* 使用 fit-content 替代 auto */
+  width: max-content !important;
+  /* 使用 max-content 确保文字完全展开 */
   min-width: 100% !important;
   /* 强制至少和 Bar 一样宽 */
   height: auto !important;
@@ -2017,15 +1472,24 @@ select:focus {
   /* 比 Bar 更高 */
 
   /* 视觉样式 */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  /* 加深阴影 */
-  /* background-color: inherit; 这里 inherit 可能拿到透明，需要处理 */
-
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  /* 加深阴影，提升层次感 */
+  border-radius: 6px;
+  /* 圆角更柔和 */
+  padding-right: 12px;
+  /* 右侧增加呼吸空间 */
+  
   /* 确保文字完整显示 */
   overflow: visible !important;
   white-space: nowrap !important;
   box-sizing: border-box !important;
-  /* 确保 padding 包含在宽度内 */
+}
+
+/* 优化内部 span 的显示 */
+:deep(.gantt-bar-content span) {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1); /* 增加文字清晰度 */
 }
 
 /* 6. 针对冲突视图的特殊处理（如果有特定颜色） */
@@ -2035,54 +1499,7 @@ select:focus {
   /* 确保不为空 */
 }
 
-/* 面板收起/展开按钮样式 */
-.panel-toggle-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #909399;
-  padding: 4px;
-  border-radius: 4px;
-  margin-left: auto;
-  /* 推到最右侧 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
 
-.panel-toggle-btn:hover {
-  background-color: #e4e7ed;
-  color: #606266;
-}
-
-.expand-panel-trigger {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 50px;
-  background: #fff;
-  border: 1px solid #dcdfe6;
-  border-right: none;
-  border-radius: 4px 0 0 4px;
-  box-shadow: -2px 0 6px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 3000;
-  /* 确保在最上层 */
-  color: #909399;
-  transition: all 0.3s;
-}
-
-.expand-panel-trigger:hover {
-  background: #f5f7fa;
-  color: #409eff;
-  width: 24px;
-}
 
 /* 普通任务条默认颜色（如果插件没传背景色，给个默认安全值，实际会被 style 覆盖） */
 
@@ -2149,173 +1566,5 @@ select:focus {
   justify-content: space-between;
 }
 
-.conflict-badge {
-  background: red;
-  color: white;
-  font-size: 10px;
-  padding: 2px 4px;
-  border-radius: 4px;
-}
 
-.conflict-alert {
-  margin-top: 20px;
-  border: 1px solid #f56c6c;
-  background: #fef0f0;
-  padding: 10px;
-  color: #f56c6c;
-}
-
-.group-task-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 400px;
-  overflow-y: auto;
-  margin-top: 10px;
-}
-
-.group-task-item {
-  padding: 10px;
-  background-color: #ffffff;
-  border-radius: 4px;
-  border: 1px solid #e4e7ed;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.group-task-item .task-name {
-  font-weight: 500;
-  margin-bottom: 6px;
-  color: #303133;
-  font-size: 13px;
-}
-
-.group-task-item .task-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: #909399;
-}
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4); /* Darker, smoother backdrop */
-  backdrop-filter: blur(2px); /* Modern blur effect */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.modal-content {
-  background-color: #fff;
-  border-radius: 12px;
-  width: 440px;
-  max-width: 90%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.modal-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid #f3f4f6;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 4px;
-  line-height: 1;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.close-btn:hover {
-  color: #4b5563;
-  background-color: #f3f4f6;
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-.detail-item {
-  margin-bottom: 16px;
-  display: flex;
-  align-items: baseline;
-}
-
-.detail-item:last-child {
-  margin-bottom: 0;
-}
-
-.detail-item .label {
-  color: #6b7280;
-  width: 100px;
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.detail-item .value {
-  color: #111827;
-  flex: 1;
-  font-size: 14px;
-}
-
-.modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid #f3f4f6;
-  text-align: right;
-  background-color: #f9fafb;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-.primary-btn {
-  background-color: #2563eb;
-  color: #fff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-
-.primary-btn:hover {
-  background-color: #1d4ed8;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
 </style>

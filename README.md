@@ -34,6 +34,11 @@
 ### 5. 现代化架构 (Modern Architecture)
 - **数据与业务分离**：采用 Mock API 设计 (`src/api/mockData.js`)，模拟异步数据请求与延迟。
 - **Vue 3 Composition API**：逻辑复用性强，代码结构清晰。
+- **组件化架构 (Refactored)**：
+  - `GanttDemo.vue`：作为主容器，负责全局状态管理和视图协调。
+  - `GanttRightPanel.vue`：独立封装右侧详情/冲突面板，符合单一职责原则。
+  - `TaskDetailModal.vue`：使用 Vue 3 `Teleport` 实现的独立弹窗组件。
+  - `ConflictCard.vue`：复用的冲突信息展示卡片。
 - **E2E 测试覆盖**：集成 Playwright 进行关键功能的自动化测试（滚动、点击、详情展示）。
 
 ## 技术栈 (Tech Stack)
