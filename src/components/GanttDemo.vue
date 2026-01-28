@@ -190,10 +190,6 @@
                       :style="{ background: bar.ganttBarConfig.style.background || bar.ganttBarConfig.style.backgroundColor }"
                       @click.stop="handleConflictBarClick(bar)" @mouseenter="checkOverflow" @mouseleave="resetOverflow">
                       <span>{{ bar.ganttBarConfig.label }}</span>
-                      <span v-if="bar.ganttBarConfig.hasConflict" class="conflict-level-tag"
-                        :class="'level-' + bar.ganttBarConfig.conflictLevel">
-                        {{ getConflictText(bar.ganttBarConfig.conflictLevel) }}
-                      </span>
                     </div>
                   </template>
                 </g-gantt-row>
@@ -327,7 +323,8 @@
             <div v-for="item in visibleConflictDetails" :key="item.id" class="conflict-card-new">
               <div class="card-header-person">
                 <span class="person-name">{{ item.personName }}</span>
-                <span class="header-badge">冲突预警</span>
+                <span class="header-badge" :class="'level-' + (item.level || 'medium')">{{ getRiskLevelText(item.level)
+                  }}</span>
               </div>
               <div class="related-tasks-section conflict-reason-row">
                 <div class="section-title">冲突原因：</div>
@@ -993,13 +990,14 @@ const onDragBar = () => {
   updateLines()
 }
 
-const getConflictText = (level) => {
+
+const getRiskLevelText = (level) => {
   const map = {
-    high: '高',
-    medium: '中',
-    low: '低'
+    high: '高风险',
+    medium: '中风险',
+    low: '低风险'
   }
-  return map[level] || ''
+  return map[level] || '中风险'
 }
 
 // --- 冲突视图数据 ---
@@ -1339,11 +1337,28 @@ watch(dependencyRows, () => {
 }
 
 .header-badge {
-  border: 1px solid #003366;
-  color: #003366;
   font-size: 12px;
   padding: 2px 6px;
   border-radius: 2px;
+  border: 1px solid #dcdfe6;
+}
+
+.header-badge.level-high {
+  border-color: #f56c6c;
+  color: #f56c6c;
+  background-color: #fde2e2;
+}
+
+.header-badge.level-medium {
+  border-color: #e6a23c;
+  color: #e6a23c;
+  background-color: #fdf6ec;
+}
+
+.header-badge.level-low {
+  border-color: #909399;
+  color: #909399;
+  background-color: #f4f4f5;
 }
 
 .card-desc {
@@ -2109,30 +2124,7 @@ select {
   /* 金色边框增强醒目度 */
 }
 
-.conflict-level-tag {
-  font-size: 10px;
-  padding: 1px 4px;
-  border-radius: 3px;
-  margin-left: 4px;
-  color: white;
-  font-weight: bold;
-  line-height: 12px;
-}
 
-.conflict-level-tag.level-high {
-  background-color: #f56c6c;
-  /* 红色 */
-}
-
-.conflict-level-tag.level-medium {
-  background-color: #e6a23c;
-  /* 橙色 */
-}
-
-.conflict-level-tag.level-low {
-  background-color: #909399;
-  /* 灰色 */
-}
 
 .conflict-bar-content {
   justify-content: space-between;

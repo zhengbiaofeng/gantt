@@ -34,7 +34,7 @@ test('Verify new conflict card UI elements', async ({ page }) => {
   const header = conflictCard.locator('.card-header-person');
   await expect(header).toBeVisible();
   await expect(header.locator('.person-name')).toHaveText('张参谋');
-  await expect(header.locator('.header-badge')).toHaveText('冲突预警');
+  await expect(header.locator('.header-badge')).toHaveText('高风险');
   
   // Check that description is REMOVED
   await expect(conflictCard.locator('.card-desc')).not.toBeVisible();
