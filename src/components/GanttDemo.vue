@@ -147,7 +147,8 @@
               <div class="perspective-title">资源视角 (人员)</div>
             </div>
 
-            <div v-for="(row, index) in conflictRows" :key="index" class="sidebar-item">
+            <div v-for="(row, index) in conflictRows" :key="index" class="sidebar-item"
+              :class="{ 'active': selectedConflictPerson === row.label }" @click="handleConflictPersonClick(row)">
               {{ row.label }}
             </div>
           </div>
@@ -322,8 +323,8 @@
           </div>
         </div>
         <div v-if="currentView === 'conflict'">
-          <div v-if="conflictDetails.length > 0" class="conflict-cards">
-            <div v-for="item in conflictDetails" :key="item.id" class="conflict-card-new">
+          <div v-if="visibleConflictDetails.length > 0" class="conflict-cards">
+            <div v-for="item in visibleConflictDetails" :key="item.id" class="conflict-card-new">
               <div class="card-header-person">
                 <span class="person-name">{{ item.personName }}</span>
                 <span class="header-badge">冲突预警</span>
@@ -447,8 +448,17 @@ const selectedTask = ref(null)
 const selectedTaskIndex = ref(null)
 const selectedGroup = ref(null)
 const selectedGroupTasks = ref([])
+const selectedConflictPerson = ref(null) // 新增：选中的冲突人员
 const showTaskDetailModal = ref(false)
 const currentDetailTask = ref({})
+
+// 新增：计算属性，根据选中的人员过滤冲突详情
+const visibleConflictDetails = computed(() => {
+  if (!selectedConflictPerson.value) {
+    return conflictDetails.value
+  }
+  return conflictDetails.value.filter(detail => detail.personName === selectedConflictPerson.value)
+})
 
 const openTaskDetail = (conflictItem, taskType) => {
   if (taskType === 'task1') {
@@ -582,10 +592,26 @@ const handleBarClick = (bar) => {
   }
 }
 
+const handleConflictPersonClick = (row) => {
+  selectedConflictPerson.value = row.label
+  isRightPanelCollapsed.value = false
+  
+  // 如果该人员没有冲突详情（例如王干事），可能需要提示或显示空状态
+  // 目前 visibleConflictDetails 会自动变为空数组，显示 "暂无资源冲突风险"
+}
+
 const handleConflictBarClick = (bar) => {
   console.log('Conflict bar clicked:', bar)
   isRightPanelCollapsed.value = false
-  // 如果 bar 有冲突，可以考虑在这里过滤 conflictDetails
+  
+  // 根据点击的条形图找到对应的人员
+  const foundRow = conflictRows.value.find(row => 
+    row.bars.some(b => b.ganttBarConfig.id === bar.ganttBarConfig.id)
+  )
+  
+  if (foundRow) {
+    selectedConflictPerson.value = foundRow.label
+  }
 }
 
 const checkOverflow = (e) => {
@@ -1007,11 +1033,21 @@ const handleGlobalClick = (event) => {
   // 否则关闭面板
   if (!isRightPanelCollapsed.value) {
     isRightPanelCollapsed.value = true
+    // 清除选中状态
+    selectedConflictPerson.value = null
+    selectedTaskIndex.value = null
   }
 }
 
 // 监听视图切换，重置滚动位置以确保对齐
 watch([currentView, currentPerspective], () => {
+  // 切换视图时清除选中状态
+  selectedConflictPerson.value = null
+  selectedTask.value = null
+  selectedTaskIndex.value = null
+  selectedLine.value = null
+  isRightPanelCollapsed.value = true
+
   // 重置依赖视图滚动
   if (sidebarListRef.value) sidebarListRef.value.scrollTop = 0
   if (chartWrapperRef.value) chartWrapperRef.value.scrollTop = 0
