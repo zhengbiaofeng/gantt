@@ -25,7 +25,7 @@ const staticGanttData = {
         // 阶段一：数据收集
         {
             id: "T-101",
-            name: "阶段一-任务1: 联指中心下达指令",
+            name: "联指中心下达指令",
             start: "2026-01-18 08:00",
             end: "2026-01-18 10:00",
             taskGroup: "阶段一：数据收集",
@@ -36,7 +36,7 @@ const staticGanttData = {
         },
         {
             id: "T-102",
-            name: "阶段一-任务2: 情报中心接收数据",
+            name: "情报中心接收数据",
             start: "2026-01-18 10:00",
             end: "2026-01-18 12:00",
             taskGroup: "阶段一：数据收集",
@@ -47,7 +47,7 @@ const staticGanttData = {
         },
         {
             id: "T-103",
-            name: "阶段一-任务3: 数据初步清洗",
+            name: "数据初步清洗",
             start: "2026-01-18 12:00",
             end: "2026-01-18 14:00",
             taskGroup: "阶段一：数据收集",
@@ -60,7 +60,7 @@ const staticGanttData = {
         // 阶段二：情报研判
         {
             id: "T-201",
-            name: "阶段二-任务1: 多源情报融合",
+            name: "多源情报融合",
             start: "2026-01-18 14:00",
             end: "2026-01-18 16:00",
             taskGroup: "阶段二：情报研判",
@@ -71,7 +71,7 @@ const staticGanttData = {
         },
         {
             id: "T-202",
-            name: "阶段二-任务2: 态势分析报告",
+            name: "态势分析报告",
             start: "2026-01-18 16:00",
             end: "2026-01-18 18:00",
             taskGroup: "阶段二：情报研判",
@@ -84,7 +84,7 @@ const staticGanttData = {
         // 阶段三：综合整编
         {
             id: "T-301",
-            name: "阶段三-任务1: 汇总各类成果",
+            name: "汇总各类成果",
             start: "2026-01-18 19:00",
             end: "2026-01-18 21:00",
             taskGroup: "阶段三：综合整编",
@@ -95,7 +95,7 @@ const staticGanttData = {
         },
         {
             id: "T-302",
-            name: "阶段三-任务2: 最终方案汇报",
+            name: "最终方案汇报",
             start: "2026-01-18 21:00",
             end: "2026-01-18 23:00",
             taskGroup: "阶段三：综合整编",

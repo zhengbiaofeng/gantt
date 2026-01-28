@@ -688,9 +688,12 @@ const updateLines = () => {
     const end = barElements[rel.to]
 
     if (start && end) {
-      // 终点：Target 左侧中心
+      // 垂直偏移量，用于错开起点和终点，避免红绿圆点重叠
+      const verticalOffset = 5
+
+      // 终点：Target 左侧中心（略微向上偏移）
       const endX = end.x
-      const endY = end.y + end.height / 2
+      const endY = end.y + end.height / 2 - verticalOffset
 
       // 动态选择起点：
       // 如果 Target 开始时间早于 Source 结束时间 (回钩)，则从 Source 左侧出发 (SS模式)
@@ -700,14 +703,14 @@ const updateLines = () => {
       let startSide = 'right' // 记录起点方向
 
       if (endX < sourceRight) {
-        // 回钩情况：使用左侧中心作为起点
+        // 回钩情况：使用左侧中心作为起点（略微向下偏移）
         startX = start.x
-        startY = start.y + start.height / 2
+        startY = start.y + start.height / 2 + verticalOffset
         startSide = 'left'
       } else {
-        // 正常情况：使用右侧中心作为起点
+        // 正常情况：使用右侧中心作为起点（略微向下偏移）
         startX = sourceRight
-        startY = start.y + start.height / 2
+        startY = start.y + start.height / 2 + verticalOffset
         startSide = 'right'
       }
 
@@ -888,6 +891,33 @@ onMounted(async () => {
   rawTasks.value = ganttData.tasks
   taskRelations.value = ganttData.relations
 
+  // 动态计算图表时间范围（增加 1 小时缓冲）
+  if (rawTasks.value.length > 0) {
+    let minTime = new Date(rawTasks.value[0].start).getTime()
+    let maxTime = new Date(rawTasks.value[0].end).getTime()
+
+    rawTasks.value.forEach(t => {
+      const s = new Date(t.start).getTime()
+      const e = new Date(t.end).getTime()
+      if (s < minTime) minTime = s
+      if (e > maxTime) maxTime = e
+    })
+
+    const formatDate = (date) => {
+      const y = date.getFullYear()
+      const m = String(date.getMonth() + 1).padStart(2, '0')
+      const d = String(date.getDate()).padStart(2, '0')
+      const h = String(date.getHours()).padStart(2, '0')
+      const min = String(date.getMinutes()).padStart(2, '0')
+      return `${y}-${m}-${d} ${h}:${min}`
+    }
+
+    // 左右各增加 1 小时缓冲
+    const buffer = 60 * 60 * 1000
+    chartStart.value = formatDate(new Date(minTime - buffer))
+    chartEnd.value = formatDate(new Date(maxTime + buffer))
+  }
+
   const conflictData = await fetchConflictData()
   conflictRows.value = conflictData.rows
   conflictDetails.value = conflictData.details
@@ -987,8 +1017,8 @@ watch(dependencyRows, () => {
 
 .critical-icon {
   position: absolute;
-  left: 6px;
-  top: 50%;
+  left: 16px;
+  top: 49%;
   transform: translateY(-50%);
 }
 
@@ -1450,7 +1480,8 @@ select:focus {
   background-color: inherit;
   /* 继承 Bar 的颜色 */
   border-radius: 4px;
-  padding: 0 4px;
+  padding: 0 8px; /* 增加内边距，避免贴边 */
+  gap: 6px; /* 增加元素间距，避免文字和标签重叠 */
   box-sizing: border-box;
 }
 
